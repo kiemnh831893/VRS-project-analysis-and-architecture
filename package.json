@@ -1,0 +1,37 @@
+{
+  "name": "vrs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Vehicle Rental System (VRS) - university Software Engineering project",
+  "packageManager": "pnpm@12.23.0",
+  "engines": {
+    "node": ">=20.19.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @vrs/web --filter @vrs/api dev",
+    "dev:web": "pnpm --filter @vrs/web dev",
+    "dev:api": "pnpm --filter @vrs/api dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v",
+    "db:logs": "docker compose logs -f db",
+    "db:migrate:deploy": "pnpm --filter @vrs/api prisma:migrate:deploy",
+    "staging:up": "docker compose -f docker-compose.staging.yml --env-file .env.staging up -d --build",
+    "staging:down": "docker compose -f docker-compose.staging.yml --env-file .env.staging down",
+    "staging:status": "docker compose -f docker-compose.staging.yml --env-file .env.staging ps",
+    "staging:logs": "docker compose -f docker-compose.staging.yml --env-file .env.staging logs -f",
+    "prisma:generate": "pnpm --filter @vrs/api prisma:generate",
+    "prisma:validate": "pnpm --filter @vrs/api prisma:validate",
+    "prisma:studio": "pnpm --filter @vrs/api prisma:studio"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}

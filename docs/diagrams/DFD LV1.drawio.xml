@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="DFD Level 1 - VRS" id="aCfuRWcuBFkvRi3emu8_">
+    <mxGraphModel dx="2481" dy="1304" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-1" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;strokeColor=none;fillColor=none;fontColor=#172B4D;fontSize=27;fontStyle=1;" value="DFD LEVEL 1 – VEHICLE RENTAL SYSTEM (VRS)" vertex="1">
+          <mxGeometry height="55" width="960" x="120" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-2" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;strokeColor=none;fillColor=none;fontColor=#5B6573;fontSize=13;" value="Simplified Data Flow Diagram" vertex="1">
+          <mxGeometry height="28" width="960" x="120" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-3" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F4F8FC;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=17;fontStyle=1;align=center;verticalAlign=middle;" value="GUEST" vertex="1">
+          <mxGeometry height="76" width="155" x="55" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-4" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F4F8FC;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=17;fontStyle=1;align=center;verticalAlign=middle;" value="CUSTOMER" vertex="1">
+          <mxGeometry height="76" width="155" x="55" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-5" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F4F8FC;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=17;fontStyle=1;align=center;verticalAlign=middle;" value="RENTAL&lt;br&gt;STAFF" vertex="1">
+          <mxGeometry height="76" width="155" x="55" y="795" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-6" parent="1" style="rounded=1;arcSize=12;whiteSpace=wrap;html=1;fillColor=#F4F8FC;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=17;fontStyle=1;align=center;verticalAlign=middle;" value="ADMINISTRATOR" vertex="1">
+          <mxGeometry height="76" width="155" x="55" y="1090" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-7" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F7FBFF;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=17;align=center;verticalAlign=middle;" value="2.0&lt;br&gt;&lt;b&gt;FLEET CATALOG&lt;br&gt;&amp;amp; INVENTORY&lt;/b&gt;" vertex="1">
+          <mxGeometry height="125" width="250" x="410" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-8" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F7FBFF;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=17;align=center;verticalAlign=middle;" value="3.0&lt;br&gt;&lt;b&gt;BOOKING &amp;amp;&lt;br&gt;CONTRACT&lt;/b&gt;" vertex="1">
+          <mxGeometry height="125" width="250" x="410" y="475" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-9" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F7FBFF;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=17;align=center;verticalAlign=middle;" value="4.0&lt;br&gt;&lt;b&gt;BILLING &amp;amp;&lt;br&gt;SETTLEMENT&lt;/b&gt;" vertex="1">
+          <mxGeometry height="125" width="250" x="410" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-10" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#F7FBFF;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=17;align=center;verticalAlign=middle;" value="5.0&lt;br&gt;&lt;b&gt;ADMIN &amp;amp;&lt;br&gt;REPORTING&lt;/b&gt;" vertex="1">
+          <mxGeometry height="125" width="250" x="410" y="1065" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-11" parent="1" style="shape=datastore;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FFFFFF;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=16;align=center;verticalAlign=middle;" value="D2&lt;br&gt;&lt;b&gt;VEHICLES &amp;amp;&lt;br&gt;CATEGORIES&lt;/b&gt;" vertex="1">
+          <mxGeometry height="78" width="265" x="865" y="205" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-12" parent="1" style="shape=datastore;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FFFFFF;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=16;align=center;verticalAlign=middle;" value="D1&lt;br&gt;&lt;b&gt;USERS &amp;amp;&lt;br&gt;DRIVER LICENSES&lt;/b&gt;" vertex="1">
+          <mxGeometry height="78" width="265" x="865" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-13" parent="1" style="shape=datastore;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FFFFFF;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=16;align=center;verticalAlign=middle;" value="D3&lt;br&gt;&lt;b&gt;BOOKINGS &amp;amp;&lt;br&gt;RENTAL CONTRACTS&lt;/b&gt;" vertex="1">
+          <mxGeometry height="78" width="265" x="865" y="795" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-14" parent="1" style="shape=datastore;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#FFFFFF;strokeColor=#1F4E79;strokeWidth=2;fontColor=#172B4D;fontSize=16;align=center;verticalAlign=middle;" value="D4&lt;br&gt;&lt;b&gt;INVOICES &amp;amp;&lt;br&gt;FINE RECORDS&lt;/b&gt;" vertex="1">
+          <mxGeometry height="78" width="265" x="865" y="1090" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-15" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.30;entryX=0;entryY=0.30;" target="kxCkWeKB_UNkss8fjJZh-7" value="Search / Login">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-16" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.72;entryX=1;entryY=0.72;" target="kxCkWeKB_UNkss8fjJZh-3" value="Vehicle Results">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-17" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.50;entryX=0;entryY=0.50;" target="kxCkWeKB_UNkss8fjJZh-11" value="Vehicle / Category Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-18" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.30;entryX=0;entryY=0.30;" target="kxCkWeKB_UNkss8fjJZh-8" value="Booking / Payment Request">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-19" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.72;entryX=1;entryY=0.72;" target="kxCkWeKB_UNkss8fjJZh-4" value="Booking Confirmation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-20" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.50;entryX=1;entryY=0.50;" target="kxCkWeKB_UNkss8fjJZh-8" value="User / License Records">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-21" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.50;entryX=0;entryY=0.50;" target="kxCkWeKB_UNkss8fjJZh-13" value="Booking / Contract Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-22" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.30;entryX=0;entryY=0.30;" target="kxCkWeKB_UNkss8fjJZh-9" value="Manage Booking / Return">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-23" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.72;entryX=1;entryY=0.72;" target="kxCkWeKB_UNkss8fjJZh-5" value="Invoice / Settlement">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-24" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.85;entryX=1;entryY=0.85;" target="kxCkWeKB_UNkss8fjJZh-9" value="Booking Details">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-25" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.50;entryX=0;entryY=0.50;" target="kxCkWeKB_UNkss8fjJZh-14" value="Invoices / Fines">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-26" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.30;entryX=0;entryY=0.30;" target="kxCkWeKB_UNkss8fjJZh-10" value="Report / Configuration Request">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-27" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.72;entryX=1;entryY=0.72;" target="kxCkWeKB_UNkss8fjJZh-6" value="Reports / Audit Results">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-28" edge="1" parent="1" source="kxCkWeKB_UNkss8fjJZh-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1F4E79;strokeWidth=2;endArrow=block;endFill=1;fontColor=#24364B;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.85;entryX=0;entryY=0.85;" target="kxCkWeKB_UNkss8fjJZh-14" value="Financial / Audit Data">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kxCkWeKB_UNkss8fjJZh-29" parent="1" style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFFBE6;strokeColor=#D6B656;fontColor=#5B4A16;fontSize=12;align=left;verticalAlign=middle;" value="Bản rút gọn: chỉ giữ các tác nhân, quy trình và kho dữ liệu chính." vertex="1">
+          <mxGeometry height="55" width="520" x="350" y="1240" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

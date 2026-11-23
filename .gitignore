@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files (never commit real values)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Test and coverage output
+coverage/
+playwright-report/
+test-results/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Prisma generated client
+apps/api/src/generated/
+apps/api/prisma/generated/
+
+# Prisma CLI helper files (optional agent skills)
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+
+# Editors and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local uploads (license images, contracts)
+storage/
+
+# Database backup artifacts (may contain personal data)
+backups/

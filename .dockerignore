@@ -1,0 +1,14 @@
+.git
+.gitignore
+node_modules
+**/node_modules
+dist
+**/dist
+coverage
+**/coverage
+*.log
+.env
+.env.*
+!.env.*.example
+apps/api/src/generated
+apps/api/prisma/generated
