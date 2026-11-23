@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" agent="diagrams.net">
+  <diagram id="vrs-dfd-level-0" name="DFD Level 0">
+    <mxGraphModel dx="1704" dy="895" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;strokeColor=none;fillColor=none;fontColor=#263746;fontSize=26;fontStyle=1;" value="DFD LEVEL 0 – VEHICLE RENTAL SYSTEM (VRS)" vertex="1">
+          <mxGeometry height="55" width="1000" x="250" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="guest" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F7F9FC;strokeColor=#244F73;strokeWidth=2;fontColor=#263746;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" value="GUEST" vertex="1">
+          <mxGeometry height="90" width="260" x="80" y="175" as="geometry" />
+        </mxCell>
+        <mxCell id="customer" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F7F9FC;strokeColor=#244F73;strokeWidth=2;fontColor=#263746;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" value="CUSTOMER" vertex="1">
+          <mxGeometry height="90" width="260" x="80" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="staff" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F7F9FC;strokeColor=#244F73;strokeWidth=2;fontColor=#263746;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" value="RENTAL STAFF" vertex="1">
+          <mxGeometry height="90" width="260" x="1160" y="175" as="geometry" />
+        </mxCell>
+        <mxCell id="admin" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F7F9FC;strokeColor=#244F73;strokeWidth=2;fontColor=#263746;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" value="ADMINISTRATOR" vertex="1">
+          <mxGeometry height="90" width="260" x="1160" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="system" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#EDF4FA;strokeColor=#244F73;strokeWidth=3;fontColor=#263746;fontSize=21;fontStyle=1;align=center;verticalAlign=middle;" value="0.0&lt;br&gt;&lt;b&gt;VEHICLE RENTAL&lt;br&gt;SYSTEM (VRS)&lt;/b&gt;" vertex="1">
+          <mxGeometry height="220" width="300" x="600" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="guest_to_system" edge="1" parent="1" source="guest" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#244F73;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;fontColor=#263746;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.28;entryX=0;entryY=0.27;" target="system" value="Search / Login">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <Array as="points">
+              <mxPoint x="455" y="200" />
+              <mxPoint x="455" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="system_to_guest" edge="1" parent="1" source="system" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#244F73;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;fontColor=#263746;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.66;entryX=1;entryY=0.78;" target="guest" value="Vehicle List / Login Result">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="14" as="offset" />
+            <Array as="points">
+              <mxPoint x="500" y="445" />
+              <mxPoint x="500" y="245" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="customer_to_system" edge="1" parent="1" source="customer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#244F73;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;fontColor=#263746;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.28;entryX=0;entryY=0.77;" target="system" value="Profile / License / Booking">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <Array as="points">
+              <mxPoint x="475" y="585" />
+              <mxPoint x="475" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="system_to_customer" edge="1" parent="1" source="system" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#244F73;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;fontColor=#263746;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.88;entryX=1;entryY=0.72;" target="customer" value="Booking Status / Invoices">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="14" as="offset" />
+            <Array as="points">
+              <mxPoint x="430" y="495" />
+              <mxPoint x="430" y="625" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="system_to_staff" edge="1" parent="1" source="system" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#244F73;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;fontColor=#263746;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.27;entryX=0;entryY=0.28;" target="staff" value="Fleet Updates / Handover Details">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <Array as="points">
+              <mxPoint x="1045" y="360" />
+              <mxPoint x="1045" y="200" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="staff_to_system" edge="1" parent="1" source="staff" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#244F73;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;fontColor=#263746;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.78;entryX=1;entryY=0.66;" target="system" value="Vehicle Status / Contract Updates">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="14" as="offset" />
+            <Array as="points">
+              <mxPoint x="1090" y="245" />
+              <mxPoint x="1090" y="445" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="admin_to_system" edge="1" parent="1" source="admin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#244F73;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;fontColor=#263746;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.28;entryX=1;entryY=0.77;" target="system" value="Policy / Backup Commands">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="-14" as="offset" />
+            <Array as="points">
+              <mxPoint x="1110" y="585" />
+              <mxPoint x="1110" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="system_to_admin" edge="1" parent="1" source="system" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#244F73;strokeWidth=2;endArrow=block;endFill=1;startArrow=none;fontColor=#263746;fontSize=14;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.88;entryX=0;entryY=0.72;" target="admin" value="Reports / Audit Logs">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="14" as="offset" />
+            <Array as="points">
+              <mxPoint x="1060" y="495" />
+              <mxPoint x="1060" y="625" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,10 @@
+process.env.NODE_ENV = 'test';
+process.env.DATABASE_URL =
+  'postgresql://vrs:change_me_local_only@localhost:5432/vrs_test?schema=public';
+process.env.JWT_SECRET = 'test-secret-at-least-32-chars-long-xxxxxxxx';
+process.env.JWT_EXPIRES_IN = '1d';
+process.env.CORS_ORIGIN = 'http://localhost:5173';
+process.env.PORT = '4001';
+process.env.TRUST_PROXY = 'false';
+process.env.RATE_LIMIT_MAX = '10000';
+process.env.AUTH_RATE_LIMIT_MAX = '10000';

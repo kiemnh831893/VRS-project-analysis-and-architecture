@@ -1,0 +1,955 @@
+// VRS Prisma schema — Phase 1 database design.
+//
+// Approved business decisions:
+// - Rental dates are calendar dates: [pickup_date, expected_return_date) => 2 days for 10th -> 12th.
+// - Deposit is a percentage of the rental subtotal only.
+// - Pickup and return branch must be the same in the MVP.
+// - Pending-payment bookings hold the vehicle for 30 minutes.
+// - Any UNPAID fine blocks a new booking.
+// - Extensions are automatically approved when all rules pass.
+// - Payments are simulated; no card/bank credentials are stored.
+//
+// PostgreSQL-only rules (btree_gist exclusion constraint, CHECK constraints, generated
+// booking period, partial/expression indexes, audit immutability) are added in the custom
+// SQL migration because Prisma schema cannot express them.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  CUSTOMER
+  STAFF
+  ADMIN
+
+  @@map("user_role")
+}
+
+enum AccountStatus {
+  ACTIVE
+  LOCKED
+
+  @@map("account_status")
+}
+
+enum LicenseStatus {
+  UNVERIFIED
+  VERIFIED
+  REJECTED
+
+  @@map("license_status")
+}
+
+enum LoginFailureReason {
+  INVALID_CREDENTIALS
+  UNKNOWN_EMAIL
+  TEMPORARILY_LOCKED
+  ACCOUNT_LOCKED
+
+  @@map("login_failure_reason")
+}
+
+enum BranchStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("branch_status")
+}
+
+enum ParkingStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("parking_status")
+}
+
+enum Transmission {
+  AUTO
+  MANUAL
+
+  @@map("transmission")
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+
+  @@map("fuel_type")
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  RENTED
+  MAINTENANCE
+  RETIRED
+
+  @@map("vehicle_status")
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  CONVERTED_TO_CONTRACT
+
+  @@map("booking_status")
+}
+
+enum BookingCancellationReason {
+  PAYMENT_TIMEOUT
+  CUSTOMER_CANCELLED
+  STAFF_CANCELLED
+  NO_SHOW
+  VEHICLE_UNAVAILABLE
+  OTHER
+
+  @@map("booking_cancellation_reason")
+}
+
+enum ContractStatus {
+  ACTIVE
+  OVERDUE
+  COMPLETED
+
+  @@map("contract_status")
+}
+
+enum InspectionType {
+  PICKUP
+  RETURN
+
+  @@map("inspection_type")
+}
+
+enum VehicleCondition {
+  INTACT
+  SCRATCHED
+  DAMAGED
+
+  @@map("vehicle_condition")
+}
+
+enum ExtensionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+
+  @@map("extension_status")
+}
+
+enum DecisionSource {
+  SYSTEM
+  STAFF
+
+  @@map("decision_source")
+}
+
+enum ViolationType {
+  LATE_RETURN
+  FUEL_SHORTAGE
+  EXTERIOR_DAMAGE
+  INTERIOR_DAMAGE
+  CLEANING
+  OTHER
+
+  @@map("violation_type")
+}
+
+enum FineCalculationMethod {
+  FIXED
+  PER_HOUR
+  PER_DAY
+  PER_LITER
+  PER_PERCENT
+
+  @@map("fine_calculation_method")
+}
+
+enum FineStatus {
+  UNPAID
+  PAID
+  WAIVED
+
+  @@map("fine_status")
+}
+
+enum FineSettlementType {
+  PAYMENT
+  DEPOSIT
+  WAIVER
+
+  @@map("fine_settlement_type")
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+  VOID
+
+  @@map("invoice_status")
+}
+
+enum InvoiceLineType {
+  RENTAL
+  INSURANCE
+  LATE_FEE
+  FUEL_FEE
+  DAMAGE_FEE
+  CLEANING_FEE
+  OTHER_FEE
+  DISCOUNT
+
+  @@map("invoice_line_type")
+}
+
+enum PaymentPurpose {
+  DEPOSIT
+  SETTLEMENT
+  FINE
+  REFUND
+  ADJUSTMENT
+
+  @@map("payment_purpose")
+}
+
+enum PaymentMethod {
+  CASH
+  SIMULATED_ONLINE
+
+  @@map("payment_method")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  CANCELLED
+
+  @@map("payment_status")
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  PAYMENT_RECEIVED
+  PICKUP_REMINDER
+  RETURN_REMINDER
+  CONTRACT_OVERDUE
+  LICENSE_VERIFIED
+  LICENSE_REJECTED
+  FINE_ISSUED
+  EXTENSION_APPROVED
+  EXTENSION_REJECTED
+  ACCOUNT_LOCKED
+  SYSTEM
+
+  @@map("notification_type")
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+
+  @@map("notification_channel")
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  READ
+  CANCELLED
+
+  @@map("notification_status")
+}
+
+enum InventoryStatus {
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@map("inventory_status")
+}
+
+enum InventoryDiscrepancy {
+  NONE
+  MISSING
+  UNEXPECTED
+  STATUS_MISMATCH
+  WRONG_BRANCH
+  DAMAGED
+
+  @@map("inventory_discrepancy")
+}
+
+enum DocumentType {
+  RENTAL_CONTRACT
+  RECEIPT
+  OTHER
+
+  @@map("document_type")
+}
+
+enum ConfigValueType {
+  STRING
+  INTEGER
+  DECIMAL
+  BOOLEAN
+  JSON
+
+  @@map("config_value_type")
+}
+
+enum AuditOutcome {
+  SUCCESS
+  FAILURE
+
+  @@map("audit_outcome")
+}
+
+model User {
+  userId            String        @id @default(dbgenerated("gen_random_uuid()")) @map("user_id") @db.Uuid
+  fullName          String        @map("full_name") @db.VarChar(100)
+  email             String        @db.VarChar(254)
+  phone             String        @unique @db.VarChar(20)
+  nationalId        String        @unique @map("national_id") @db.VarChar(20)
+  passwordHash      String        @map("password_hash") @db.VarChar(255)
+  role              UserRole
+  accountStatus     AccountStatus @default(ACTIVE) @map("account_status")
+  address           String?       @db.Text
+  avatarKey         String?       @map("avatar_key") @db.VarChar(500)
+  failedLoginCount  Int           @default(0) @map("failed_login_count") @db.SmallInt
+  loginLockedUntil  DateTime?     @map("login_locked_until") @db.Timestamptz(6)
+  lastFailedLoginAt DateTime?     @map("last_failed_login_at") @db.Timestamptz(6)
+  lastLoginAt       DateTime?     @map("last_login_at") @db.Timestamptz(6)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer                 Customer?            @relation("CustomerProfile")
+  licenseReviews           Customer[]           @relation("LicenseReviewer")
+  rentalStaff              RentalStaff?
+  contractHandovers        RentalContract[]     @relation("ContractHandoverStaff")
+  contractReturns          RentalContract[]     @relation("ContractReturnStaff")
+  inspections              VehicleInspection[]
+  extensionsDecided        ExtensionRequest[]   @relation("ExtensionDecidedBy")
+  finesAssessed            FineRecord[]
+  paymentsConfirmed        PaymentTransaction[]
+  documentsGenerated       ContractDocument[]
+  fineRulesCreated         FineRule[]           @relation("FineRuleCreatedBy")
+  fineRulesUpdated         FineRule[]           @relation("FineRuleUpdatedBy")
+  notifications            Notification[]
+  failedLoginAttempts      FailedLoginAttempt[]
+  configsUpdated           SystemConfig[]
+  auditLogs                AuditLog[]
+  inventoryChecksStarted   InventoryCheck[]     @relation("InventoryStartedBy")
+  inventoryChecksCompleted InventoryCheck[]     @relation("InventoryCompletedBy")
+  inventoryItemsChecked    InventoryCheckItem[]
+
+  @@index([role, accountStatus])
+  @@index([loginLockedUntil])
+  @@map("users")
+}
+
+model Customer {
+  userId                 String        @id @map("user_id") @db.Uuid
+  driverLicenseNo        String?       @unique @map("driver_license_no") @db.VarChar(30)
+  licenseClass           String?       @map("license_class") @db.VarChar(10)
+  licenseExpiryDate      DateTime?     @map("license_expiry_date") @db.Date
+  licenseImageKey        String?       @map("license_image_key") @db.VarChar(500)
+  licenseStatus          LicenseStatus @default(UNVERIFIED) @map("license_status")
+  licenseSubmittedAt     DateTime?     @map("license_submitted_at") @db.Timestamptz(6)
+  licenseReviewedById    String?       @map("license_reviewed_by") @db.Uuid
+  licenseReviewedAt      DateTime?     @map("license_reviewed_at") @db.Timestamptz(6)
+  licenseRejectionReason String?       @map("license_rejection_reason") @db.Text
+  createdAt              DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user              User               @relation("CustomerProfile", fields: [userId], references: [userId], onDelete: Restrict)
+  licenseReviewer   User?              @relation("LicenseReviewer", fields: [licenseReviewedById], references: [userId], onDelete: SetNull)
+  bookings          Booking[]
+  extensionRequests ExtensionRequest[]
+
+  @@index([licenseStatus, licenseSubmittedAt])
+  @@map("customers")
+}
+
+model RentalStaff {
+  userId       String    @id @map("user_id") @db.Uuid
+  employeeCode String    @unique @map("employee_code") @db.VarChar(20)
+  branchId     String    @map("branch_id") @db.Uuid
+  hiredAt      DateTime? @map("hired_at") @db.Date
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user   User   @relation(fields: [userId], references: [userId], onDelete: Restrict)
+  branch Branch @relation(fields: [branchId], references: [branchId], onDelete: Restrict)
+
+  @@index([branchId, employeeCode])
+  @@map("rental_staff")
+}
+
+model FailedLoginAttempt {
+  attemptId      BigInt             @id @default(autoincrement()) @map("attempt_id")
+  userId         String?            @map("user_id") @db.Uuid
+  emailAttempted String             @map("email_attempted") @db.VarChar(254)
+  ipAddress      String?            @map("ip_address") @db.Inet
+  userAgent      String?            @map("user_agent") @db.Text
+  failureReason  LoginFailureReason @map("failure_reason")
+  attemptedAt    DateTime           @default(now()) @map("attempted_at") @db.Timestamptz(6)
+
+  user User? @relation(fields: [userId], references: [userId], onDelete: SetNull)
+
+  @@index([emailAttempted, attemptedAt(sort: Desc)])
+  @@index([ipAddress, attemptedAt(sort: Desc)])
+  @@index([userId, attemptedAt(sort: Desc)])
+  @@map("failed_login_attempts")
+}
+
+model Branch {
+  branchId    String       @id @default(dbgenerated("gen_random_uuid()")) @map("branch_id") @db.Uuid
+  code        String       @unique @db.VarChar(20)
+  name        String       @db.VarChar(100)
+  address     String       @db.Text
+  phone       String?      @db.VarChar(20)
+  email       String?      @db.VarChar(254)
+  openingTime DateTime     @default(dbgenerated("'08:00:00'::time without time zone")) @map("opening_time") @db.Time(6)
+  closingTime DateTime     @default(dbgenerated("'18:00:00'::time without time zone")) @map("closing_time") @db.Time(6)
+  timezone    String       @default("Asia/Ho_Chi_Minh") @db.VarChar(50)
+  status      BranchStatus @default(ACTIVE)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  staffProfiles       RentalStaff[]
+  parkingLocations    ParkingLocation[]
+  vehicles            Vehicle[]
+  pickupBookings      Booking[]            @relation("BookingPickupBranch")
+  returnBookings      Booking[]            @relation("BookingReturnBranch")
+  inventoryChecks     InventoryCheck[]
+  inventoryItemsFound InventoryCheckItem[]
+
+  @@index([status, name])
+  @@map("branches")
+}
+
+model ParkingLocation {
+  parkingLocationId String        @id @default(dbgenerated("gen_random_uuid()")) @map("parking_location_id") @db.Uuid
+  branchId          String        @map("branch_id") @db.Uuid
+  code              String        @db.VarChar(20)
+  name              String        @db.VarChar(100)
+  zone              String?       @db.VarChar(50)
+  capacity          Int?
+  status            ParkingStatus @default(ACTIVE)
+  notes             String?       @db.Text
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  branch   Branch    @relation(fields: [branchId], references: [branchId], onDelete: Restrict)
+  vehicles Vehicle[]
+
+  @@unique([branchId, code])
+  @@unique([parkingLocationId, branchId])
+  @@index([branchId, status])
+  @@map("parking_locations")
+}
+
+model VehicleCategory {
+  categoryId  Int      @id @default(autoincrement()) @map("category_id")
+  name        String   @unique @db.VarChar(50)
+  depositRate Decimal  @map("deposit_rate") @db.Decimal(5, 2)
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  vehicles Vehicle[]
+
+  @@map("vehicle_categories")
+}
+
+model Vehicle {
+  vehicleId         String        @id @default(dbgenerated("gen_random_uuid()")) @map("vehicle_id") @db.Uuid
+  categoryId        Int           @map("category_id")
+  branchId          String        @map("branch_id") @db.Uuid
+  parkingLocationId String?       @map("parking_location_id") @db.Uuid
+  licensePlate      String        @map("license_plate") @db.VarChar(20)
+  vin               String?       @unique @db.VarChar(17)
+  brand             String        @db.VarChar(50)
+  model             String        @db.VarChar(50)
+  manufactureYear   Int           @map("manufacture_year") @db.SmallInt
+  transmission      Transmission
+  fuelType          FuelType      @map("fuel_type")
+  seats             Int           @db.SmallInt
+  dailyRate         Decimal       @map("daily_rate") @db.Decimal(12, 2)
+  currentMileage    Int           @default(0) @map("current_mileage")
+  status            VehicleStatus @default(AVAILABLE)
+  retiredAt         DateTime?     @map("retired_at") @db.Timestamptz(6)
+  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  category        VehicleCategory      @relation(fields: [categoryId], references: [categoryId], onDelete: Restrict)
+  branch          Branch               @relation(fields: [branchId], references: [branchId], onDelete: Restrict)
+  parkingLocation ParkingLocation?     @relation(fields: [parkingLocationId], references: [parkingLocationId], onDelete: SetNull)
+  images          VehicleImage[]
+  bookings        Booking[]
+  inventoryItems  InventoryCheckItem[]
+
+  @@index([branchId, status])
+  @@index([categoryId])
+  @@index([parkingLocationId])
+  @@map("vehicles")
+}
+
+model VehicleImage {
+  vehicleImageId String   @id @default(dbgenerated("gen_random_uuid()")) @map("vehicle_image_id") @db.Uuid
+  vehicleId      String   @map("vehicle_id") @db.Uuid
+  storageKey     String   @unique @map("storage_key") @db.VarChar(500)
+  altText        String?  @map("alt_text") @db.VarChar(200)
+  isPrimary      Boolean  @default(false) @map("is_primary")
+  sortOrder      Int      @default(0) @map("sort_order") @db.SmallInt
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [vehicleId], onDelete: Cascade)
+
+  @@index([vehicleId, sortOrder])
+  @@map("vehicle_images")
+}
+
+model InsurancePackage {
+  insurancePackageId  String   @id @default(dbgenerated("gen_random_uuid()")) @map("insurance_package_id") @db.Uuid
+  code                String   @unique @db.VarChar(30)
+  name                String   @db.VarChar(100)
+  dailyRate           Decimal  @map("daily_rate") @db.Decimal(12, 2)
+  coverageDescription String   @map("coverage_description") @db.Text
+  isActive            Boolean  @default(true) @map("is_active")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  bookings Booking[]
+
+  @@map("insurance_packages")
+}
+
+model Booking {
+  bookingId                  String                     @id @default(dbgenerated("gen_random_uuid()")) @map("booking_id") @db.Uuid
+  bookingCode                String                     @unique @map("booking_code") @db.VarChar(20)
+  customerId                 String                     @map("customer_id") @db.Uuid
+  vehicleId                  String                     @map("vehicle_id") @db.Uuid
+  pickupBranchId             String                     @map("pickup_branch_id") @db.Uuid
+  returnBranchId             String                     @map("return_branch_id") @db.Uuid
+  pickupDate                 DateTime                   @map("pickup_date") @db.Date
+  expectedReturnDate         DateTime                   @map("expected_return_date") @db.Date
+  rentalDays                 Int                        @map("rental_days")
+  dailyRateSnapshot          Decimal                    @map("daily_rate_snapshot") @db.Decimal(12, 2)
+  rentalSubtotal             Decimal                    @map("rental_subtotal") @db.Decimal(12, 2)
+  depositRateSnapshot        Decimal                    @map("deposit_rate_snapshot") @db.Decimal(5, 2)
+  depositAmount              Decimal                    @map("deposit_amount") @db.Decimal(12, 2)
+  insurancePackageId         String?                    @map("insurance_package_id") @db.Uuid
+  insuranceNameSnapshot      String?                    @map("insurance_name_snapshot") @db.VarChar(100)
+  insuranceDailyRateSnapshot Decimal?                   @map("insurance_daily_rate_snapshot") @db.Decimal(12, 2)
+  insuranceFee               Decimal                    @default(0) @map("insurance_fee") @db.Decimal(12, 2)
+  totalEstimatedCost         Decimal                    @map("total_estimated_cost") @db.Decimal(12, 2)
+  currency                   String                     @default("VND") @db.Char(3)
+  bookingStatus              BookingStatus              @default(PENDING_PAYMENT) @map("booking_status")
+  holdExpiresAt              DateTime                   @map("hold_expires_at") @db.Timestamptz(6)
+  confirmedAt                DateTime?                  @map("confirmed_at") @db.Timestamptz(6)
+  cancelledAt                DateTime?                  @map("cancelled_at") @db.Timestamptz(6)
+  cancellationReason         BookingCancellationReason? @map("cancellation_reason")
+  convertedAt                DateTime?                  @map("converted_at") @db.Timestamptz(6)
+  availabilityReleasedAt     DateTime?                  @map("availability_released_at") @db.Timestamptz(6)
+  bookingPeriod              Unsupported("daterange")?  @default(dbgenerated("daterange(pickup_date, expected_return_date, '[)'::text)")) @map("booking_period")
+  createdAt                  DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                  DateTime                   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  customer         Customer             @relation(fields: [customerId], references: [userId], onDelete: Restrict)
+  vehicle          Vehicle              @relation(fields: [vehicleId], references: [vehicleId], onDelete: Restrict)
+  pickupBranch     Branch               @relation("BookingPickupBranch", fields: [pickupBranchId], references: [branchId], onDelete: Restrict)
+  returnBranch     Branch               @relation("BookingReturnBranch", fields: [returnBranchId], references: [branchId], onDelete: Restrict)
+  insurancePackage InsurancePackage?    @relation(fields: [insurancePackageId], references: [insurancePackageId], onDelete: SetNull)
+  contract         RentalContract?
+  payments         PaymentTransaction[]
+
+  @@index([customerId, createdAt(sort: Desc)])
+  @@index([vehicleId, pickupDate])
+  @@index([bookingStatus, pickupDate])
+  @@map("bookings")
+}
+
+model RentalContract {
+  contractId         String         @id @default(dbgenerated("gen_random_uuid()")) @map("contract_id") @db.Uuid
+  contractNumber     String         @unique @map("contract_number") @db.VarChar(30)
+  bookingId          String         @unique @map("booking_id") @db.Uuid
+  staffHandoverId    String         @map("staff_handover_id") @db.Uuid
+  staffReturnId      String?        @map("staff_return_id") @db.Uuid
+  actualPickupAt     DateTime       @map("actual_pickup_at") @db.Timestamptz(6)
+  expectedReturnDate DateTime       @map("expected_return_date") @db.Date
+  actualReturnAt     DateTime?      @map("actual_return_at") @db.Timestamptz(6)
+  contractStatus     ContractStatus @default(ACTIVE) @map("contract_status")
+  completedAt        DateTime?      @map("completed_at") @db.Timestamptz(6)
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  booking           Booking             @relation(fields: [bookingId], references: [bookingId], onDelete: Restrict)
+  staffHandover     User                @relation("ContractHandoverStaff", fields: [staffHandoverId], references: [userId], onDelete: Restrict)
+  staffReturn       User?               @relation("ContractReturnStaff", fields: [staffReturnId], references: [userId], onDelete: SetNull)
+  inspections       VehicleInspection[]
+  extensionRequests ExtensionRequest[]
+  fines             FineRecord[]
+  invoice           Invoice?
+  documents         ContractDocument[]
+
+  @@index([contractStatus, expectedReturnDate])
+  @@index([staffHandoverId])
+  @@index([staffReturnId])
+  @@map("rental_contracts")
+}
+
+model VehicleInspection {
+  inspectionId     String           @id @default(dbgenerated("gen_random_uuid()")) @map("inspection_id") @db.Uuid
+  contractId       String           @map("contract_id") @db.Uuid
+  inspectionType   InspectionType   @map("inspection_type")
+  mileage          Int
+  fuelLevelPercent Int              @map("fuel_level_percent") @db.SmallInt
+  condition        VehicleCondition
+  notes            String?          @db.Text
+  inspectedById    String           @map("inspected_by") @db.Uuid
+  inspectedAt      DateTime         @map("inspected_at") @db.Timestamptz(6)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  contract    RentalContract    @relation(fields: [contractId], references: [contractId], onDelete: Restrict)
+  inspectedBy User              @relation(fields: [inspectedById], references: [userId], onDelete: Restrict)
+  photos      InspectionPhoto[]
+
+  @@unique([contractId, inspectionType])
+  @@index([contractId, inspectedAt])
+  @@map("vehicle_inspections")
+}
+
+model InspectionPhoto {
+  photoId      String   @id @default(dbgenerated("gen_random_uuid()")) @map("photo_id") @db.Uuid
+  inspectionId String   @map("inspection_id") @db.Uuid
+  storageKey   String   @unique @map("storage_key") @db.VarChar(500)
+  caption      String?  @db.VarChar(200)
+  sortOrder    Int      @default(0) @map("sort_order") @db.SmallInt
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  inspection VehicleInspection @relation(fields: [inspectionId], references: [inspectionId], onDelete: Cascade)
+
+  @@index([inspectionId, sortOrder])
+  @@map("inspection_photos")
+}
+
+model ExtensionRequest {
+  extensionId         String          @id @default(dbgenerated("gen_random_uuid()")) @map("extension_id") @db.Uuid
+  contractId          String          @map("contract_id") @db.Uuid
+  requestedById       String          @map("requested_by") @db.Uuid
+  requestedAt         DateTime        @default(now()) @map("requested_at") @db.Timestamptz(6)
+  currentReturnDate   DateTime        @map("current_return_date") @db.Date
+  requestedReturnDate DateTime        @map("requested_return_date") @db.Date
+  additionalDays      Int             @map("additional_days")
+  additionalAmount    Decimal         @map("additional_amount") @db.Decimal(12, 2)
+  reason              String?         @db.Text
+  status              ExtensionStatus @default(PENDING)
+  decisionSource      DecisionSource? @map("decision_source")
+  decidedById         String?         @map("decided_by") @db.Uuid
+  decidedAt           DateTime?       @map("decided_at") @db.Timestamptz(6)
+  decisionReason      String?         @map("decision_reason") @db.Text
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  contract    RentalContract @relation(fields: [contractId], references: [contractId], onDelete: Restrict)
+  requestedBy Customer       @relation(fields: [requestedById], references: [userId], onDelete: Restrict)
+  decidedBy   User?          @relation("ExtensionDecidedBy", fields: [decidedById], references: [userId], onDelete: SetNull)
+
+  @@unique([contractId, requestedReturnDate])
+  @@index([contractId, status])
+  @@map("extension_requests")
+}
+
+model FineRule {
+  fineRuleId        String                @id @default(dbgenerated("gen_random_uuid()")) @map("fine_rule_id") @db.Uuid
+  code              String                @unique @db.VarChar(30)
+  name              String                @db.VarChar(100)
+  violationType     ViolationType         @map("violation_type")
+  calculationMethod FineCalculationMethod @map("calculation_method")
+  rateAmount        Decimal               @map("rate_amount") @db.Decimal(12, 2)
+  unitLabel         String?               @map("unit_label") @db.VarChar(20)
+  graceMinutes      Int                   @default(0) @map("grace_minutes")
+  maxAmount         Decimal?              @map("max_amount") @db.Decimal(12, 2)
+  isActive          Boolean               @default(true) @map("is_active")
+  effectiveFrom     DateTime              @default(now()) @map("effective_from") @db.Timestamptz(6)
+  effectiveTo       DateTime?             @map("effective_to") @db.Timestamptz(6)
+  createdById       String?               @map("created_by") @db.Uuid
+  updatedById       String?               @map("updated_by") @db.Uuid
+  createdAt         DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime              @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  createdBy User?        @relation("FineRuleCreatedBy", fields: [createdById], references: [userId], onDelete: SetNull)
+  updatedBy User?        @relation("FineRuleUpdatedBy", fields: [updatedById], references: [userId], onDelete: SetNull)
+  fines     FineRecord[]
+
+  @@index([violationType, isActive, effectiveFrom])
+  @@map("fine_rules")
+}
+
+model FineRecord {
+  fineId         String              @id @default(dbgenerated("gen_random_uuid()")) @map("fine_id") @db.Uuid
+  contractId     String              @map("contract_id") @db.Uuid
+  invoiceId      String?             @map("invoice_id") @db.Uuid
+  fineRuleId     String              @map("fine_rule_id") @db.Uuid
+  violationType  ViolationType       @map("violation_type")
+  description    String?             @db.Text
+  quantity       Decimal             @default(1) @db.Decimal(12, 2)
+  unitAmount     Decimal             @map("unit_amount") @db.Decimal(12, 2)
+  amount         Decimal             @db.Decimal(12, 2)
+  status         FineStatus          @default(UNPAID)
+  assessedById   String              @map("assessed_by") @db.Uuid
+  assessedAt     DateTime            @default(now()) @map("assessed_at") @db.Timestamptz(6)
+  settledAt      DateTime?           @map("settled_at") @db.Timestamptz(6)
+  settlementType FineSettlementType? @map("settlement_type")
+  waiverReason   String?             @map("waiver_reason") @db.Text
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  contract    RentalContract @relation(fields: [contractId], references: [contractId], onDelete: Restrict)
+  invoice     Invoice?       @relation(fields: [invoiceId], references: [invoiceId], onDelete: SetNull)
+  fineRule    FineRule       @relation(fields: [fineRuleId], references: [fineRuleId], onDelete: Restrict)
+  assessedBy  User           @relation(fields: [assessedById], references: [userId], onDelete: Restrict)
+  invoiceLine InvoiceLine?
+
+  @@index([contractId, status])
+  @@index([invoiceId])
+  @@index([assessedAt])
+  @@map("fine_records")
+}
+
+model Invoice {
+  invoiceId      String        @id @default(dbgenerated("gen_random_uuid()")) @map("invoice_id") @db.Uuid
+  invoiceNumber  String        @unique @map("invoice_number") @db.VarChar(30)
+  contractId     String        @unique @map("contract_id") @db.Uuid
+  status         InvoiceStatus @default(UNPAID)
+  rentalFee      Decimal       @map("rental_fee") @db.Decimal(12, 2)
+  insuranceFee   Decimal       @default(0) @map("insurance_fee") @db.Decimal(12, 2)
+  fineFee        Decimal       @default(0) @map("fine_fee") @db.Decimal(12, 2)
+  discountAmount Decimal       @default(0) @map("discount_amount") @db.Decimal(12, 2)
+  totalAmount    Decimal       @map("total_amount") @db.Decimal(12, 2)
+  depositAmount  Decimal       @default(0) @map("deposit_amount") @db.Decimal(12, 2)
+  depositApplied Decimal       @default(0) @map("deposit_applied") @db.Decimal(12, 2)
+  finalAmountDue Decimal       @map("final_amount_due") @db.Decimal(12, 2)
+  amountPaid     Decimal       @default(0) @map("amount_paid") @db.Decimal(12, 2)
+  refundAmount   Decimal       @default(0) @map("refund_amount") @db.Decimal(12, 2)
+  currency       String        @default("VND") @db.Char(3)
+  issuedAt       DateTime      @default(now()) @map("issued_at") @db.Timestamptz(6)
+  dueAt          DateTime?     @map("due_at") @db.Timestamptz(6)
+  paidAt         DateTime?     @map("paid_at") @db.Timestamptz(6)
+  createdAt      DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  contract RentalContract       @relation(fields: [contractId], references: [contractId], onDelete: Restrict)
+  lines    InvoiceLine[]
+  payments PaymentTransaction[]
+  fines    FineRecord[]
+
+  @@index([status, dueAt])
+  @@map("invoices")
+}
+
+model InvoiceLine {
+  invoiceLineId String          @id @default(dbgenerated("gen_random_uuid()")) @map("invoice_line_id") @db.Uuid
+  invoiceId     String          @map("invoice_id") @db.Uuid
+  lineType      InvoiceLineType @map("line_type")
+  description   String          @db.VarChar(255)
+  quantity      Decimal         @default(1) @db.Decimal(12, 2)
+  unitAmount    Decimal         @map("unit_amount") @db.Decimal(12, 2)
+  lineAmount    Decimal         @map("line_amount") @db.Decimal(12, 2)
+  fineId        String?         @unique @map("fine_id") @db.Uuid
+  sortOrder     Int             @default(0) @map("sort_order") @db.SmallInt
+  createdAt     DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  invoice Invoice     @relation(fields: [invoiceId], references: [invoiceId], onDelete: Cascade)
+  fine    FineRecord? @relation(fields: [fineId], references: [fineId], onDelete: SetNull)
+
+  @@index([invoiceId, sortOrder])
+  @@map("invoice_lines")
+}
+
+model PaymentTransaction {
+  paymentId              String         @id @default(dbgenerated("gen_random_uuid()")) @map("payment_id") @db.Uuid
+  paymentCode            String         @unique @map("payment_code") @db.VarChar(30)
+  bookingId              String?        @map("booking_id") @db.Uuid
+  invoiceId              String?        @map("invoice_id") @db.Uuid
+  purpose                PaymentPurpose
+  method                 PaymentMethod
+  provider               String         @db.VarChar(30)
+  providerTransactionRef String?        @unique @map("provider_transaction_ref") @db.VarChar(100)
+  idempotencyKey         String         @unique @map("idempotency_key") @db.VarChar(100)
+  amount                 Decimal        @db.Decimal(12, 2)
+  currency               String         @default("VND") @db.Char(3)
+  status                 PaymentStatus  @default(PENDING)
+  confirmedById          String?        @map("confirmed_by") @db.Uuid
+  confirmedAt            DateTime?      @map("confirmed_at") @db.Timestamptz(6)
+  failureReason          String?        @map("failure_reason") @db.Text
+  notes                  String?        @db.Text
+  createdAt              DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  booking     Booking? @relation(fields: [bookingId], references: [bookingId], onDelete: Restrict)
+  invoice     Invoice? @relation(fields: [invoiceId], references: [invoiceId], onDelete: Restrict)
+  confirmedBy User?    @relation(fields: [confirmedById], references: [userId], onDelete: SetNull)
+
+  @@index([bookingId])
+  @@index([invoiceId])
+  @@index([status, createdAt(sort: Desc)])
+  @@map("payment_transactions")
+}
+
+model ContractDocument {
+  documentId    String       @id @default(dbgenerated("gen_random_uuid()")) @map("document_id") @db.Uuid
+  contractId    String       @map("contract_id") @db.Uuid
+  documentType  DocumentType @map("document_type")
+  version       Int          @default(1)
+  storageKey    String       @unique @map("storage_key") @db.VarChar(500)
+  mimeType      String       @default("application/pdf") @map("mime_type") @db.VarChar(100)
+  sizeBytes     BigInt       @map("size_bytes")
+  sha256        String       @db.Char(64)
+  generatedById String?      @map("generated_by") @db.Uuid
+  generatedAt   DateTime     @default(now()) @map("generated_at") @db.Timestamptz(6)
+  isCurrent     Boolean      @default(true) @map("is_current")
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  contract    RentalContract @relation(fields: [contractId], references: [contractId], onDelete: Restrict)
+  generatedBy User?          @relation(fields: [generatedById], references: [userId], onDelete: SetNull)
+
+  @@unique([contractId, documentType, version])
+  @@index([contractId, documentType, version])
+  @@map("contract_documents")
+}
+
+model Notification {
+  notificationId    String              @id @default(dbgenerated("gen_random_uuid()")) @map("notification_id") @db.Uuid
+  recipientUserId   String              @map("recipient_user_id") @db.Uuid
+  type              NotificationType
+  channel           NotificationChannel @default(IN_APP)
+  title             String              @db.VarChar(150)
+  body              String              @db.Text
+  relatedEntityType String?             @map("related_entity_type") @db.VarChar(50)
+  relatedEntityId   String?             @map("related_entity_id") @db.VarChar(64)
+  dedupeKey         String?             @unique @map("dedupe_key") @db.VarChar(150)
+  status            NotificationStatus  @default(PENDING)
+  scheduledAt       DateTime            @default(now()) @map("scheduled_at") @db.Timestamptz(6)
+  sentAt            DateTime?           @map("sent_at") @db.Timestamptz(6)
+  readAt            DateTime?           @map("read_at") @db.Timestamptz(6)
+  retryCount        Int                 @default(0) @map("retry_count") @db.SmallInt
+  lastError         String?             @map("last_error") @db.Text
+  metadata          Json?               @db.JsonB
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  recipient User @relation(fields: [recipientUserId], references: [userId], onDelete: Cascade)
+
+  @@index([recipientUserId, status, scheduledAt])
+  @@index([channel, status, scheduledAt])
+  @@map("notifications")
+}
+
+model InventoryCheck {
+  inventoryCheckId String          @id @default(dbgenerated("gen_random_uuid()")) @map("inventory_check_id") @db.Uuid
+  checkNumber      String          @unique @map("check_number") @db.VarChar(30)
+  branchId         String          @map("branch_id") @db.Uuid
+  status           InventoryStatus @default(IN_PROGRESS)
+  startedById      String          @map("started_by") @db.Uuid
+  startedAt        DateTime        @default(now()) @map("started_at") @db.Timestamptz(6)
+  completedById    String?         @map("completed_by") @db.Uuid
+  completedAt      DateTime?       @map("completed_at") @db.Timestamptz(6)
+  notes            String?         @db.Text
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  branch      Branch               @relation(fields: [branchId], references: [branchId], onDelete: Restrict)
+  startedBy   User                 @relation("InventoryStartedBy", fields: [startedById], references: [userId], onDelete: Restrict)
+  completedBy User?                @relation("InventoryCompletedBy", fields: [completedById], references: [userId], onDelete: SetNull)
+  items       InventoryCheckItem[]
+
+  @@index([branchId, status, startedAt(sort: Desc)])
+  @@map("inventory_checks")
+}
+
+model InventoryCheckItem {
+  itemId           String               @id @default(dbgenerated("gen_random_uuid()")) @map("item_id") @db.Uuid
+  inventoryCheckId String               @map("inventory_check_id") @db.Uuid
+  vehicleId        String               @map("vehicle_id") @db.Uuid
+  expectedStatus   VehicleStatus        @map("expected_status")
+  foundPresent     Boolean              @default(false) @map("found_present")
+  actualStatus     VehicleStatus?       @map("actual_status")
+  foundBranchId    String?              @map("found_branch_id") @db.Uuid
+  discrepancy      InventoryDiscrepancy @default(NONE)
+  notes            String?              @db.Text
+  photoKey         String?              @map("photo_key") @db.VarChar(500)
+  checkedById      String               @map("checked_by") @db.Uuid
+  checkedAt        DateTime             @default(now()) @map("checked_at") @db.Timestamptz(6)
+
+  inventoryCheck InventoryCheck @relation(fields: [inventoryCheckId], references: [inventoryCheckId], onDelete: Cascade)
+  vehicle        Vehicle        @relation(fields: [vehicleId], references: [vehicleId], onDelete: Restrict)
+  foundBranch    Branch?        @relation(fields: [foundBranchId], references: [branchId], onDelete: SetNull)
+  checkedBy      User           @relation(fields: [checkedById], references: [userId], onDelete: Restrict)
+
+  @@unique([inventoryCheckId, vehicleId])
+  @@index([inventoryCheckId])
+  @@index([vehicleId, checkedAt(sort: Desc)])
+  @@index([discrepancy])
+  @@map("inventory_check_items")
+}
+
+model SystemConfig {
+  configKey   String          @id @map("config_key") @db.VarChar(80)
+  configValue String          @map("config_value") @db.Text
+  valueType   ConfigValueType @map("value_type")
+  category    String          @db.VarChar(50)
+  description String?         @db.Text
+  isPublic    Boolean         @default(false) @map("is_public")
+  version     Int             @default(1)
+  updatedById String?         @map("updated_by") @db.Uuid
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  updatedBy User? @relation(fields: [updatedById], references: [userId], onDelete: SetNull)
+
+  @@index([category, configKey])
+  @@map("system_configs")
+}
+
+model AuditLog {
+  logId       BigInt       @id @default(autoincrement()) @map("log_id")
+  actorUserId String?      @map("actor_user_id") @db.Uuid
+  actorRole   UserRole?    @map("actor_role")
+  action      String       @db.VarChar(80)
+  entityType  String       @map("entity_type") @db.VarChar(50)
+  entityId    String?      @map("entity_id") @db.VarChar(64)
+  outcome     AuditOutcome
+  beforeData  Json?        @map("before_data") @db.JsonB
+  afterData   Json?        @map("after_data") @db.JsonB
+  ipAddress   String?      @map("ip_address") @db.Inet
+  userAgent   String?      @map("user_agent") @db.Text
+  requestId   String?      @map("request_id") @db.Uuid
+  reason      String?      @db.Text
+  occurredAt  DateTime     @default(now()) @map("occurred_at") @db.Timestamptz(6)
+
+  actor User? @relation(fields: [actorUserId], references: [userId], onDelete: Restrict)
+
+  @@index([occurredAt(sort: Desc)])
+  @@index([actorUserId, occurredAt(sort: Desc)])
+  @@index([entityType, entityId, occurredAt(sort: Desc)])
+  @@index([action, occurredAt(sort: Desc)])
+  @@map("audit_logs")
+}

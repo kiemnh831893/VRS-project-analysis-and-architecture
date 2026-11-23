@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+coverage/
+pnpm-lock.yaml
+
+# Original specification and diagrams are preserved exactly as supplied
+docs/
+
+# Generated Prisma SQL and client
+apps/api/prisma/migrations/
+apps/api/src/generated/

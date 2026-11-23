@@ -1,0 +1,25 @@
+name: vrs
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: vrs-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vrs}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_local_only}
+      POSTGRES_DB: ${POSTGRES_DB:-vrs}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - vrs_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-vrs} -d ${POSTGRES_DB:-vrs}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  vrs_pgdata:
+    name: vrs_pgdata
